@@ -17,11 +17,10 @@ type Chat = {
 
 export default function ChatPage() {
     const { documentId } = useParams<{ documentId: string }>();
-    // @ts-ignore
-    const [chat, setChat] = useState<Chat[]>()
+    const [chat, setChat] = useState<Chat[]>([])
     const [loading, setLoading] = useState(false)
     const [chatloading, setChatLoading] = useState(false)
-    const [pdfDetail, setPdfDetail] = useState<PdfDetail>()
+    const [pdfDetail, setPdfDetail] = useState<PdfDetail | undefined>()
     const [userQuery, setUserQuery] = useState("")
     const bottomRef = useRef<HTMLDivElement>(null);
     const { isLoaded } = useAuth()
@@ -30,7 +29,9 @@ export default function ChatPage() {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [chat, loading]);
     useEffect(() => {
-        documentId && getChatHistory()
+        if(documentId){
+            getChatHistory()
+        }
     }, [])
 
     const getChatHistory = async () => {
@@ -51,8 +52,9 @@ export default function ChatPage() {
 
     const onSend = async () => {
         if (loading) return
+        if (!userQuery.trim()) return;
 
-        setChat((chat) => [...chat!, {
+        setChat((chat) => [...chat, {
             role: "user",
             content: userQuery
         }])
@@ -64,7 +66,7 @@ export default function ChatPage() {
                 documentId, userQuery
             })
             if (res.statusText == 'OK') {
-                setChat((chat) => [...chat!, {
+                setChat((chat) => [...chat, {
                     role: "model",
                     content: res.data
                 },])
@@ -73,7 +75,7 @@ export default function ChatPage() {
             }
 
         } catch (error:any) {
-            toast.error(error.response.data.error || "Faild to get answer")
+            toast.error(error.response?.data?.error || "Faild to get answer")
         } finally {
             setLoading(false)
         }
@@ -140,8 +142,13 @@ export default function ChatPage() {
                         className="flex-1 bg-transparent py-3 text-sm outline-none"
                         placeholder="Send a message…"
                         value={userQuery}
-                        onChange={e => setUserQuery(e.target.value)}
-                        onKeyDown={e => e.key == "Enter" && onSend()}
+                        onChange={(e) => setUserQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                            if(e.key == "Enter" && !e.shiftKey){
+                                e.preventDefault();
+                                onSend()
+                            }
+                        }}
                     />
                     <Send
                         onClick={onSend}
