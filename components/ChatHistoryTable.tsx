@@ -36,9 +36,10 @@ const ChatHistoryTable = () => {
         setLoading(true);
         try {
             const res = await axios.get("/api/previousChat");
-            if (res.status === 200) {
-                setHistory(res.data);
+            if (res.status != 200) {
+                toast.error("Faild to fetch your chat history")
             }
+            setHistory(res.data);
         } catch (error: any) {
             toast.error(error.response.data.error || "Faild to get your chat history")
         } finally {

@@ -39,10 +39,12 @@ export default function ChatPage() {
         try {
             const res = await axios.get(`/api/chat?documentId=${documentId}`);
 
-            if (res.statusText == 'OK') {
-                setChat(res?.data?.chatHistory)
-                setPdfDetail(res.data)
+            if (res.status != 200) {
+                toast.error("Faild to fetch Chat")
+                return
             }
+            setChat(res?.data?.chatHistory)
+            setPdfDetail(res.data)
         } catch (error:any) {
             toast.error(error.response.data.error || "Faild to fetch chat")
         } finally {
@@ -65,14 +67,14 @@ export default function ChatPage() {
             const res = await axios.post('/api/chat', {
                 documentId, userQuery
             })
-            if (res.statusText == 'OK') {
-                setChat((chat) => [...chat, {
-                    role: "model",
-                    content: res.data
-                },])
-            }else{
-                toast.error("Failed to get answer")
+            if (res.status != 200) {
+                toast.error("Faild to fetch answer")
+                return
             }
+            setChat((chat) => [...chat, {
+                role: "model",
+                content: res.data
+            },])
 
         } catch (error:any) {
             toast.error(error.response?.data?.error || "Faild to get answer")

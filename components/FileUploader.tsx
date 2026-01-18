@@ -45,7 +45,7 @@ export default function FileUploader() {
         try {
             const res = await axios.post('/api/upload', formData)
             
-            if (res.statusText != 'OK'){
+            if (res.status != 200){
                 toast.error("File Upload Faild")
                 return
             }
