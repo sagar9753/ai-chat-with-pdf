@@ -21,38 +21,38 @@ export default function ChatPage() {
     const [chat, setChat] = useState<Chat[]>()
     const [loading, setLoading] = useState(false)
     const [chatloading, setChatLoading] = useState(false)
-    const [pdfDetail,setPdfDetail] = useState<PdfDetail>()
+    const [pdfDetail, setPdfDetail] = useState<PdfDetail>()
     const [userQuery, setUserQuery] = useState("")
     const bottomRef = useRef<HTMLDivElement>(null);
-    const {isLoaded} = useAuth()
+    const { isLoaded } = useAuth()
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, [chat, loading]);
-    useEffect(()=>{
+    }, [chat, loading]);
+    useEffect(() => {
         documentId && getChatHistory()
-    },[])
+    }, [])
 
-    const getChatHistory = async()=>{
+    const getChatHistory = async () => {
         setChatLoading(true)
         try {
             const res = await axios.get(`/api/chat?documentId=${documentId}`);
-            console.log("RRR",res);
-            
-            if(res.statusText == 'OK'){
+
+            if (res.statusText == 'OK') {
                 setChat(res?.data?.chatHistory)
                 setPdfDetail(res.data)
             }
-        } catch (error) {
-            console.log("In get error",error);
-        }finally{
+        } catch (error:any) {
+            toast.error(error.response.data.error || "Faild to fetch chat")
+        } finally {
             setChatLoading(false)
         }
     }
 
     const onSend = async () => {
         if (loading) return
-        setChat((chat)=>[...chat!, {
+
+        setChat((chat) => [...chat!, {
             role: "user",
             content: userQuery
         }])
@@ -60,42 +60,44 @@ export default function ChatPage() {
         setLoading(true)
 
         try {
-            const res = await axios.post('/api/chat',{
-                documentId,userQuery
+            const res = await axios.post('/api/chat', {
+                documentId, userQuery
             })
-            console.log(chat);
-            
-            setChat((chat)=>[...chat!,{
-                role:"model",
-                content:res.data
-            },])
-            
-        } catch (error) {
-            console.log("In Post error", error);
-        }finally{
+            if (res.statusText == 'OK') {
+                setChat((chat) => [...chat!, {
+                    role: "model",
+                    content: res.data
+                },])
+            }else{
+                toast.error("Failed to get answer")
+            }
+
+        } catch (error:any) {
+            toast.error(error.response.data.error || "Faild to get answer")
+        } finally {
             setLoading(false)
         }
     }
 
     if (chatloading || !isLoaded) {
         return (
-          <div className="flex justify-center items-center h-[300px]">
-            <Loader className="animate-spin text-white" />
-          </div>
+            <div className="flex justify-center items-center h-[300px]">
+                <Loader className="animate-spin text-white" />
+            </div>
         );
-      }
+    }
     return (
-        <div className="flex h-[90vh] flex-col text-white">
+        <div className="flex h-[88vh] mt-5 flex-col text-white">
 
             {/* HEADER */}
             <div className="px-4 py-3 flex justify-between">
                 <h3 className="sm:text-xl">Chat with Document</h3>
-                <ViewPdfDialog pdfUrl={pdfDetail?.imageUrl} />
+                <ViewPdfDialog pdfUrl={pdfDetail?.pdfUrl} />
             </div>
 
             {/* CHAT MESSAGES */}
             <div className="flex-1 overflow-y-auto px-2 py-6 space-y-6">
-                
+
                 {chat?.map((msg, idx) => {
                     const isUser = msg.role === "user";
 

@@ -66,7 +66,8 @@ export async function POST(req: NextRequest) {
             model: "gemini-2.0-flash",
             contents: rewriteHistory,
             config: {
-                systemInstruction: `You are a query rewriting expert. Based on the provided chat history, rephrase the "Follow Up user's latest Question" into a complete, standalone question that can be understood without the chat history.
+                systemInstruction: `You are a query rewriting expert. Based on the provided chat history, rephrase the "Follow Up user's latest Question" into a complete, standalone question that can be understood without the chat history if the latest question is related to previous chat otherwise same user question .
+                user Question : ${userQuery}.
             Only output the rewritten question and nothing else.`,
             },
         });
@@ -98,12 +99,12 @@ export async function POST(req: NextRequest) {
             2
         );
 
-        console.log("Found the docs", docs);
+        console.log("Found the docs");
         // Create context for LLM based on related doc
         const context = docs
             .map((doc) => doc.pageContent)
             .join("\n\n---\n\n");
-        console.log("The context", context);
+        console.log("The context");
 
         const answerResponse = await ai.models.generateContent({
             model: "gemini-2.0-flash",
@@ -137,8 +138,13 @@ export async function POST(req: NextRequest) {
             .where(eq(pdfDetailTable.documentId, documentId));
 
         return NextResponse.json(answer)
-    } catch (error) {
-        console.log(error);
+    } catch (error:any) {
+        console.log("hhhhh",error);
+        if(error.status == 429){
+            return NextResponse.json({
+                error: "You Quota Exceded",
+            }, { status: 429 })
+        }
         return NextResponse.json({
             error: "Failed To generate Answer",
         }, { status: 500 })
@@ -172,7 +178,6 @@ export async function GET(req: NextRequest) {
             )
         )
 
-        console.log("JJJJJ", res);
         if (!res) {
             return NextResponse.json({
                 error: "No Pdf Found"
@@ -183,7 +188,7 @@ export async function GET(req: NextRequest) {
     } catch (error) {
         console.log(error);
         return NextResponse.json({
-            error: "Failed To generate Answer",
+            error: "Failed To get chat",
         }, { status: 500 })
     }
 }

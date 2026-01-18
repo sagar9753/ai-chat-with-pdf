@@ -20,8 +20,7 @@ export async function POST(req: NextRequest) {
     try {
         const formData = await req.formData()
         const file = formData.get('file') as File
-        console.log("hhhh", file);
-
+        
         if (!userId) {
             throw new Error("Unauthorized");
         }
@@ -31,17 +30,16 @@ export async function POST(req: NextRequest) {
                 { status: 400 }
             );
         }
-
+        
         if (file.size > 5 * 1024 * 1024) {
             return NextResponse.json(
                 { error: "File must be under 5MB" },
                 { status: 400 }
             );
         }
-
+        
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
-        console.log("BBBB", buffer);
 
 
         const uploadRes = await imagekit.upload({
@@ -50,7 +48,6 @@ export async function POST(req: NextRequest) {
             folder: "/ai-chat-with-doc",
             useUniqueFileName: true,
         })
-        console.log("uuuu", uploadRes);
 
         const tempDir = os.tmpdir();
         const tempFilePath = path.join(tempDir, uploadRes.name);
@@ -58,7 +55,7 @@ export async function POST(req: NextRequest) {
 
         const pdfLoader = new PDFLoader(tempFilePath);
         const rawDocs = await pdfLoader.load();
-        console.log("Pdf loaded", rawDocs);
+        console.log("Pdf loaded");
 
         // Creating chunks
         const textSplitter = new RecursiveCharacterTextSplitter({
@@ -78,7 +75,7 @@ export async function POST(req: NextRequest) {
                 fileName: uploadRes.name
             }
         }))
-        console.log("chunking with meta completed", docWithMetadata);
+        console.log("chunking with meta completed");
 
         // Creating embeddings
         const embeddings = new GoogleGenerativeAIEmbeddings({
@@ -97,15 +94,15 @@ export async function POST(req: NextRequest) {
             maxConcurrency: 5,
             namespace: `doc_${documentId}`
         });
-        console.log("Chunks saved", res);
+        console.log("Chunks saved");
 
         await fs.unlink(tempFilePath);
 
         await db.insert(pdfDetailTable).values({
             userId: userId,
             documentId: documentId,
-            fileName: uploadRes.name,
-            imageUrl: uploadRes.url,
+            fileName: file.name,
+            pdfUrl: uploadRes.url,
             chatHistory: []
         }).returning()
 

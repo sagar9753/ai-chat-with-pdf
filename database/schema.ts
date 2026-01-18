@@ -11,7 +11,7 @@ export const pdfDetailTable = pgTable("pdfDetail", {
 
     // File metadata
     fileName: text("file_name").notNull(),
-    imageUrl: text("image_url").notNull(),
+    pdfUrl: text("pdf_url").notNull(),
 
     // Chat history (JSON)
     chatHistory: jsonb("chatHistory")

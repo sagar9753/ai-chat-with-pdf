@@ -2,14 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from '@clerk/nextjs'
+import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut, UserButton} from '@clerk/nextjs'
+import { dark } from "@clerk/themes";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,23 +29,37 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider appearance={{
+      baseTheme: dark,
+    }}>
       <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-900 sm:mx-5 md:mx-10 lg:mx-40 xl:60`}>
-          <header className="flex justify-end items-center p-4 gap-4 h-16">
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-900 `}>
+          <header className="flex justify-between bg-zinc-600 items-center h-13 px-3 sm:px-5 md:px-10 lg:px-20 xl:px-30 sticky top-0 z-50">
+            <Link href={'/dashboard'}>
+            <Image src={'/askmypdf.png'} alt="PDF" width={140} height={140} />
+            </Link>
             <SignedOut>
-              <SignInButton />
-              <SignUpButton>
-                <button className="bg-[#6c47ff] text-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer">
-                  Sign Up
-                </button>
-              </SignUpButton>
+              <div>
+                <SignInButton>
+                  <Button className="bg-gray-300 text-black hover:bg-gray-50 mr-2">
+                    Sign In
+                  </Button>
+                </SignInButton>
+                <SignUpButton>
+                  <Button className="hover:bg-gray-700">
+                    Sign Up
+                  </Button>
+                </SignUpButton>
+              </div>
             </SignedOut>
             <SignedIn>
               <UserButton />
             </SignedIn>
           </header>
-          {children}
+          <div className="sm:px-5 md:px-10 lg:px-30 xl:px-40">
+            <Toaster position="top-center" richColors/>
+            {children}
+          </div>
         </body>
       </html>
     </ClerkProvider>

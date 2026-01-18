@@ -41,20 +41,19 @@ export default function FileUploader() {
         setUploading(true)
         const formData = new FormData()
         formData.append('file', file)
-        console.log(file)
 
         try {
             const res = await axios.post('/api/upload', formData)
-            console.log("In upload",res);
             
-            if (res.statusText != 'OK')
-                toast.error(res?.data?.message || "File Upload Faild")
+            if (res.statusText != 'OK'){
+                toast.error("File Upload Faild")
+                return
+            }
             
             router.replace(`/chat/${res?.data?.documentId}`)
 
         } catch (error: any) {
-            console.log(error);
-            toast.error(error.response.data.message || error.message || "File Upload Faild")
+            toast.error(error.response.data.error || "File Uploading Faild")
         } finally {
             setUploading(false)
             setFile(null)
@@ -62,7 +61,7 @@ export default function FileUploader() {
     }
 
     return (
-        <Card className="max-w-md mx-auto bg-zinc-800 border-zinc-900">
+        <Card className="max-w-sm mx-auto bg-zinc-800 border-zinc-900">
             <CardHeader>
                 <CardTitle className="text-lg text-gray-50">Upload PDF</CardTitle>
             </CardHeader>
@@ -70,7 +69,7 @@ export default function FileUploader() {
             <CardContent className="space-y-4">
                 {!file ? (
                     <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-600 rounded-lg p-6 cursor-pointer hover:bg-zinc-700 transition">
-                        <Upload className="w-8 h-8 mb-2 text-gray-300" />
+                        <Upload className="w-6 h-6 mb-2 text-gray-300" />
                         <span className="text-gray-300">
                             Click to upload PDF
                         </span>

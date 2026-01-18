@@ -1,7 +1,7 @@
 import { db } from "@/database/db";
 import { pdfDetailTable } from "@/database/schema";
 import { auth } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
                 { status: 401 }
             );
 
-        const res = await db.select().from(pdfDetailTable).where(eq(pdfDetailTable.userId, userId));
+        const res = await db.select().from(pdfDetailTable).where(eq(pdfDetailTable.userId, userId)).orderBy(desc(pdfDetailTable.updatedAt));;
         console.log("Res", res);
 
         return NextResponse.json(res)
